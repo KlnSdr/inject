@@ -1,0 +1,14 @@
+{
+  "remoteRepoUrl": "https://repo.klnsdr.com",
+  "project": {
+    "entry": "",
+    "group": "common",
+    "name": "inject",
+    "version": "1.0-snapshot",
+    "dependencies": []
+  },
+  "compiler": {
+    "version": "21"
+  },
+  "exclude": []
+}
