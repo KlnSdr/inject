@@ -1,5 +1,6 @@
 package common.inject;
 
+import common.inject.annotations.Inject;
 import common.inject.exceptions.InjectException;
 
 import java.lang.reflect.Constructor;
@@ -30,6 +31,13 @@ public class InjectorService {
         classMap.put(abstraction, implementation);
     }
 
+    public <T> void register(Class<T> clazz) {
+        if (classMap.containsKey(clazz)) {
+            throw new InjectException("Class " + clazz.getName() + " is already registered.");
+        }
+        classMap.put(clazz, clazz);
+    }
+
     public <T> T getInstance(Class<T> abstraction) {
         if (instanceMap.containsKey(abstraction)) {
             return abstraction.cast(instanceMap.get(abstraction));
@@ -52,7 +60,14 @@ public class InjectorService {
                 throw new InjectException("No public constructor found for: " + implementationClass.getName());
             }
 
-            final Constructor<?> constructor = constructors[0];
+            Constructor<?> constructor = constructors[0];
+
+            for (Constructor<?> c : constructors) {
+                if (c.isAnnotationPresent(Inject.class)) {
+                    constructor = c;
+                }
+            }
+
             final Class<?>[] paramTypes = constructor.getParameterTypes();
 
             final Object[] dependencies = new Object[paramTypes.length];
