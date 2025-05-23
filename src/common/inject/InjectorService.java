@@ -2,6 +2,7 @@ package common.inject;
 
 import common.inject.annotations.Inject;
 import common.inject.exceptions.InjectException;
+import common.logger.Logger;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.Set;
 
 public class InjectorService {
     private static InjectorService instance;
+    private static final Logger LOGGER = new Logger(InjectorService.class);
     private final Map<Class<?>, Class<?>> classMap;
     private final Map<Class<?>, Object> instanceMap;
     private final ThreadLocal<Set<Class<?>>> resolutionStack = ThreadLocal.withInitial(HashSet::new);
@@ -27,10 +29,18 @@ public class InjectorService {
         return instance;
     }
 
+    public void reset() {
+        classMap.clear();
+        instanceMap.clear();
+        resolutionStack.get().clear();
+        LOGGER.debug("InjectorService reset");
+    }
+
     public <T> void register(Class<T> abstraction, Class<? extends T> implementation) {
         if (classMap.containsKey(abstraction)) {
             throw new InjectException("Class " + abstraction.getName() + " is already registered.");
         }
+        LOGGER.debug("Registering " + implementation.getName() + " as abstraction " + abstraction.getName());
         classMap.put(abstraction, implementation);
     }
 
@@ -38,11 +48,13 @@ public class InjectorService {
         if (classMap.containsKey(clazz)) {
             throw new InjectException("Class " + clazz.getName() + " is already registered.");
         }
+        LOGGER.debug("Registering " + clazz.getName() + " as itself");
         classMap.put(clazz, clazz);
     }
 
     public <T> T getInstance(Class<T> abstraction) {
         if (instanceMap.containsKey(abstraction)) {
+            LOGGER.debug("Returning cached instance of " + abstraction.getName());
             return abstraction.cast(instanceMap.get(abstraction));
         }
 
@@ -50,10 +62,11 @@ public class InjectorService {
             throw new InjectException("Class " + abstraction.getName() + " is not registered.");
         }
 
+        LOGGER.debug("Creating " + abstraction.getName() + " instance");
         final Class<?> clazz = classMap.get(abstraction);
 
         if (!resolutionStack.get().add(clazz)) {
-            throw new InjectException("Circular dependency detected for " + abstraction.getName());
+            throw new InjectException("Circular dependency detected: " + String.join(" -> ", resolutionStack.get().stream().map(Class::getSimpleName).toList()) + " -> " + clazz.getSimpleName());
         }
 
         try {
@@ -79,6 +92,8 @@ public class InjectorService {
                     constructor = c;
                 }
             }
+
+            LOGGER.debug("Using constructor " + constructor + " for " + implementationClass.getName());
 
             final Class<?>[] paramTypes = constructor.getParameterTypes();
 

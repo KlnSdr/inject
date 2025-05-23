@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="util-1.0-snapshot" level="project" />
+    <orderEntry type="library" name="logger-1.0" level="project" />
   </component>
 </module>
