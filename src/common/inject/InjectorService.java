@@ -5,12 +5,15 @@ import common.inject.exceptions.InjectException;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class InjectorService {
     private static InjectorService instance;
     private final Map<Class<?>, Class<?>> classMap;
     private final Map<Class<?>, Object> instanceMap;
+    private final ThreadLocal<Set<Class<?>>> resolutionStack = ThreadLocal.withInitial(HashSet::new);
 
     private InjectorService() {
         classMap = new HashMap<>();
@@ -48,9 +51,18 @@ public class InjectorService {
         }
 
         final Class<?> clazz = classMap.get(abstraction);
-        @SuppressWarnings("unchecked") final T instance = (T) createInstance(clazz);
-        instanceMap.put(abstraction, instance);
-        return instance;
+
+        if (!resolutionStack.get().add(clazz)) {
+            throw new InjectException("Circular dependency detected for " + abstraction.getName());
+        }
+
+        try {
+            @SuppressWarnings("unchecked") final T instance = (T) createInstance(clazz);
+            instanceMap.put(abstraction, instance);
+            return instance;
+        } finally {
+            resolutionStack.get().remove(clazz);
+        }
     }
 
     private <T> T createInstance(Class<T> implementationClass) {
