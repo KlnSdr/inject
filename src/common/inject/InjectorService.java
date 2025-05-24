@@ -13,6 +13,7 @@ import java.util.Set;
 public class InjectorService {
     private static InjectorService instance;
     private static final Logger LOGGER = new Logger(InjectorService.class);
+    private static boolean didInit = false;
     private final Map<Class<?>, Class<?>> classMap;
     private final Map<Class<?>, Object> instanceMap;
     private final ThreadLocal<Set<Class<?>>> resolutionStack = ThreadLocal.withInitial(HashSet::new);
@@ -33,6 +34,7 @@ public class InjectorService {
         classMap.clear();
         instanceMap.clear();
         resolutionStack.get().clear();
+        didInit = false;
         LOGGER.debug("InjectorService reset");
     }
 
@@ -53,6 +55,11 @@ public class InjectorService {
     }
 
     public <T> T getInstance(Class<T> abstraction) {
+        if (!didInit) {
+            InjectionDiscoverer.discover();
+            didInit = true;
+        }
+
         if (instanceMap.containsKey(abstraction)) {
             LOGGER.debug("Returning cached instance of " + abstraction.getName());
             return abstraction.cast(instanceMap.get(abstraction));
