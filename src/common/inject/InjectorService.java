@@ -54,6 +54,15 @@ public class InjectorService {
         classMap.put(clazz, clazz);
     }
 
+    public <T> T getInstanceNullable(Class<T> abstraction) {
+        try {
+            return getInstance(abstraction);
+        } catch (InjectException e) {
+            LOGGER.debug("Failed to get instance of " + abstraction.getName() + ", returning null");
+            return null;
+        }
+    }
+
     public <T> T getInstance(Class<T> abstraction) {
         if (!didInit) {
             InjectionDiscoverer.discover();
