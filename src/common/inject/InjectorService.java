@@ -63,6 +63,15 @@ public class InjectorService {
         }
     }
 
+    public <T> T getNewInstanceNullable(Class<T> abstraction) {
+        try {
+            return getNewInstance(abstraction);
+        } catch (InjectException e) {
+            LOGGER.debug("Failed to get new instance of " + abstraction.getName() + ", returning null");
+            return null;
+        }
+    }
+
     public <T> T getInstance(Class<T> abstraction) {
         if (!didInit) {
             InjectionDiscoverer.discover();
@@ -73,7 +82,10 @@ public class InjectorService {
             LOGGER.debug("Returning cached instance of " + abstraction.getName());
             return abstraction.cast(instanceMap.get(abstraction));
         }
+        return getNewInstance(abstraction);
+    }
 
+    public <T> T getNewInstance(Class<T> abstraction) {
         if (!classMap.containsKey(abstraction)) {
             throw new InjectException("Class " + abstraction.getName() + " is not registered.");
         }
