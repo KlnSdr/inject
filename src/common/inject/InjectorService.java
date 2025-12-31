@@ -17,6 +17,7 @@ public class InjectorService {
     private final Map<Class<?>, Class<?>> classMap;
     private final Map<Class<?>, Object> instanceMap;
     private final ThreadLocal<Set<Class<?>>> resolutionStack = ThreadLocal.withInitial(HashSet::new);
+    private static String basePackage = "";
 
     private InjectorService() {
         classMap = new HashMap<>();
@@ -28,6 +29,10 @@ public class InjectorService {
             instance = new InjectorService();
         }
         return instance;
+    }
+
+    public static void setBasePackage(String packageName) {
+        basePackage = packageName;
     }
 
     public void reset() {
@@ -74,7 +79,7 @@ public class InjectorService {
 
     public <T> T getInstance(Class<T> abstraction) {
         if (!didInit) {
-            InjectionDiscoverer.discover();
+            InjectionDiscoverer.discover(basePackage);
             didInit = true;
         }
 
