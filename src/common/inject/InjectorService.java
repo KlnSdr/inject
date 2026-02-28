@@ -1,6 +1,6 @@
 package common.inject;
 
-import common.inject.annotations.Inject;
+import common.inject.api.Inject;
 import common.inject.exceptions.InjectException;
 import common.logger.Logger;
 

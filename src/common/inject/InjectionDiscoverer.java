@@ -1,6 +1,6 @@
 package common.inject;
 
-import common.inject.annotations.RegisterFor;
+import common.inject.api.RegisterFor;
 import common.logger.Logger;
 import common.util.Classloader;
 
