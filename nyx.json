@@ -9,17 +9,17 @@
       {
         "group": "common",
         "name": "logger",
-        "version": "1.2-snapshot"
+        "version": "1.2"
       },
       {
         "group": "common",
         "name": "util",
-        "version": "1.1-snapshot"
+        "version": "1.1"
       },
       {
         "group": "common",
         "name": "inject-api",
-        "version": "1.0-snapshot"
+        "version": "1.0"
       }
     ]
   },
