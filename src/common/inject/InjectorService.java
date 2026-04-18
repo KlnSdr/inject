@@ -5,10 +5,7 @@ import common.inject.exceptions.InjectException;
 import common.logger.Logger;
 
 import java.lang.reflect.Constructor;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class InjectorService {
     private static InjectorService instance;
@@ -17,7 +14,7 @@ public class InjectorService {
     private final Map<Class<?>, Class<?>> classMap;
     private final Map<Class<?>, Object> instanceMap;
     private final ThreadLocal<Set<Class<?>>> resolutionStack = ThreadLocal.withInitial(HashSet::new);
-    private static String basePackage = "";
+    private static final List<String> discovererBlackList = new ArrayList<>();
 
     private InjectorService() {
         classMap = new HashMap<>();
@@ -31,8 +28,8 @@ public class InjectorService {
         return instance;
     }
 
-    public static void setBasePackage(String packageName) {
-        basePackage = packageName;
+    public static void addPackageToBlackList(String packageName) {
+        discovererBlackList.add(packageName);
     }
 
     public void reset() {
@@ -79,7 +76,7 @@ public class InjectorService {
 
     public <T> T getInstance(Class<T> abstraction) {
         if (!didInit) {
-            InjectionDiscoverer.discover(basePackage);
+            InjectionDiscoverer.discover(discovererBlackList);
             didInit = true;
         }
 

@@ -4,6 +4,8 @@ import common.inject.api.RegisterFor;
 import common.logger.Logger;
 import common.util.Classloader;
 
+import java.util.List;
+
 public class InjectionDiscoverer extends Classloader<Object> {
     private static final Logger LOGGER = new Logger(InjectionDiscoverer.class);
 
@@ -15,7 +17,7 @@ public class InjectionDiscoverer extends Classloader<Object> {
         this("");
     }
 
-    public static void discover(String rootPackage) {
+    public static void discover(String rootPackage, List<String> packagesBlackList) {
         if (rootPackage.startsWith(".")) {
             rootPackage = rootPackage.substring(1);
         }
@@ -24,11 +26,25 @@ public class InjectionDiscoverer extends Classloader<Object> {
         discoverer.loadClasses();
 
         String finalRootPackage = rootPackage;
-        discoverer.getPackages().forEach(subpackage -> InjectionDiscoverer.discover(finalRootPackage + "." + subpackage));
+        discoverer.getPackages().forEach(subpackage -> {
+            if (packagesBlackList.contains(finalRootPackage + "." + subpackage) || packagesBlackList.contains(subpackage)) {
+                LOGGER.debug("Skipping package " + finalRootPackage + "." + subpackage + " because it is in the blacklist.");
+                return;
+            }
+            InjectionDiscoverer.discover(finalRootPackage + "." + subpackage, packagesBlackList);
+        });
     }
 
     public static void discover() {
-        discover("");
+        discover("", List.of());
+    }
+
+    public static void discover(String rootPackage) {
+        discover(rootPackage, List.of());
+    }
+
+    public static void discover(List<String> packagesBlackList) {
+        discover("", packagesBlackList);
     }
 
     @Override
